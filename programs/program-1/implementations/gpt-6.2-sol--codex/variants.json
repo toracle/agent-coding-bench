@@ -33,8 +33,8 @@
     {
       "id": "pharo", "language": "smalltalk", "source": "smalltalk/main.st",
       "opt_in": true,
-      "version": ["{pharo_vm}", "{pharo_image}", "eval", "Smalltalk version"],
-      "run": ["{pharo_vm}", "{pharo_image}", "st", "--quit", "{source}"]
+      "version": ["{pharo_vm}", "{pharo_image}", "--no-default-preferences", "eval", "Smalltalk version"],
+      "run": ["{pharo_vm}", "{pharo_image}", "--no-default-preferences", "st", "--quit", "{source}"]
     }
   ]
 }

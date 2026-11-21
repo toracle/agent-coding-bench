@@ -46,8 +46,8 @@ include local pipe I/O and the benchmark client's work.
 ### Initial results
 
 Five rounds per variant on Linux x86-64 under WSL2, with 50,000 measured
-requests per variant. Pharo was added after this run and has no
-recorded results yet. See the [machine-readable report](reports/program-1-gpt-6.2-sol--codex.json).
+requests per variant. Pharo used the same settings in a separate run.
+See the [Pharo report](reports/program-1-gpt-6.2-sol--codex-pharo.json) and the [machine-readable report](reports/program-1-gpt-6.2-sol--codex.json).
 
 | Language | Runtime | Source lines | Compile / build (ms) | Executable size | Ready p50 (ms) | Request p50 (µs) | Request p95 (µs) | Request p99 (µs) |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -56,13 +56,14 @@ recorded results yet. See the [machine-readable report](reports/program-1-gpt-6.
 | python | python | 17 | — | — | 12.92 | 78.0 | 141.3 | 343.0 |
 | rust | rust | 41 | 1,061.23 | 3.86 MiB | 1.39 | 45.0 | 113.1 | 189.4 |
 | clojure | clojure | 19 | — | — | 1550.31 | 86.9 | 172.0 | 809.5 |
+| smalltalk | pharo | 13 | — | — | 216.75 | 70.8 | 136.5 | 355.2 |
 
 Compile / build is one elapsed build per compiled variant, including compiler
 startup and linking or image saving where applicable. A dash means the manifest
 runs the source directly. Any work those runtimes do before sending `ready`
 is included in the readiness time. Executable sizes are for the generated files.
 SBCL embeds its runtime and core in the executable. ECL loads `libecl`
-separately. Python and Clojure produce no executable in this benchmark.
+separately. Python, Clojure, and Pharo produce no executable in this benchmark.
 
 ### What happened during code generation
 
@@ -76,6 +77,7 @@ were not recorded.
 | Clojure | Used an atom for orders and redefined the discount function in the REPL. Extended the same implementation with a buffered stdin loop for the persistent worker. The REPL check and the recorded worker run both passed. |
 | Python | Used a dictionary and a function resolved by global name, so the REPL could replace the policy in place. When the REPL code and standalone worker were combined, the worker's `sys` import was restored before the integrated test. |
 | Rust | Passed the discount policy as a function argument to reuse the same order map. The worker reused one input buffer and flushed each response. Both the standalone example and the optimized worker passed their observed checks. |
+| Smalltalk | Switched from GNU Smalltalk to Pharo and used binary standard streams for the pipe protocol. The first launch tried to create a preferences directory. Passing `--no-default-preferences` allowed the version probe and worker to run in the benchmark environment. |
 
 ### Add a combination
 

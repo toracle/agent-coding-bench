@@ -1,0 +1,36 @@
+{
+  "program": "program-1",
+  "model": "gpt-6.2-sol",
+  "harness": "codex",
+  "timestamp_utc": "2026-11-21T14:23:32.906293+00:00",
+  "environment": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+    "machine": "x86_64",
+    "logical_cpus": 4,
+    "driver_python": "3.11.8"
+  },
+  "warmup_per_round": 1000,
+  "requests_per_round": 10000,
+  "rounds": 5,
+  "variants": [
+    {
+      "id": "pharo",
+      "language": "smalltalk",
+      "runtime_version": "'Pharo13.1.0SNAPSHOT'",
+      "nonblank_source_lines": 13,
+      "build_ms": null,
+      "executable_bytes": null,
+      "startup_us": {
+        "p50": 216746.7,
+        "p95": 258624.3,
+        "p99": 258624.3
+      },
+      "round_trip_us": {
+        "p50": 70.8,
+        "p95": 136.5,
+        "p99": 355.2
+      },
+      "verified_requests": 50000
+    }
+  ]
+}
