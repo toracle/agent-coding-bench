@@ -37,21 +37,31 @@ include local pipe I/O and the benchmark client's work.
 Five rounds per variant on Linux x86-64 under WSL2, with 50,000 measured
 requests per variant. See the [machine-readable report](reports/program-1-gpt-6.2-sol--codex.json).
 
-| Language | Runtime | Source lines | Ready p50 (ms) | Request p50 (µs) | Request p95 (µs) | Request p99 (µs) |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| common-lisp | sbcl | 18 | 5.42 | 71.1 | 138.2 | 499.0 |
-| common-lisp | ecl | 18 | 75.15 | 81.7 | 159.7 | 484.0 |
-| python | python | 17 | 12.92 | 78.0 | 141.3 | 343.0 |
-| rust | rust | 41 | 1.39 | 45.0 | 113.1 | 189.4 |
-| clojure | clojure | 19 | 1550.31 | 86.9 | 172.0 | 809.5 |
+| Language | Runtime | Source lines | Compile / build (ms) | Ready p50 (ms) | Request p50 (µs) | Request p95 (µs) | Request p99 (µs) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| common-lisp | sbcl | 18 | 1,073.44 | 5.42 | 71.1 | 138.2 | 499.0 |
+| common-lisp | ecl | 18 | 994.12 | 75.15 | 81.7 | 159.7 | 484.0 |
+| python | python | 17 | — | 12.92 | 78.0 | 141.3 | 343.0 |
+| rust | rust | 41 | 1,061.23 | 1.39 | 45.0 | 113.1 | 189.4 |
+| clojure | clojure | 19 | — | 1550.31 | 86.9 | 172.0 | 809.5 |
 
-### Development notes
+Compile / build is one elapsed build per compiled variant, including compiler
+startup and linking or image saving where applicable. A dash means the manifest
+runs the source directly. Any work those runtimes do before sending `ready`
+is included in the readiness time.
 
-When relevant, note the agent's generation time if it was captured, whether
-the implementation passed on the first try, and what caused any retries or
-detours. Keep these observations with the implementation or in its pull
-request. The Program 1 implementations grew out of an exploratory session,
-and per-language generation times and retry counts were not recorded.
+### What happened during code generation
+
+The implementations evolved during an exploratory Codex session. These notes
+describe the observed path. Per-language generation times and retry counts
+were not recorded.
+
+| Language | Implementation path and observed detours |
+| --- | --- |
+| Common Lisp | Wrote one shared quote function and verified live discount redefinition on both SBCL and ECL. Packaging split into an SBCL saved executable image and an ECL native link. The first integrated runner attempt could not find SBCL because Roswell uses `x86-64` while the host reports `x86_64`. Normalizing that directory name let both builds run. |
+| Clojure | Used an atom for orders and redefined the discount function in the REPL. Extended the same implementation with a buffered stdin loop for the persistent worker. The REPL check and the recorded worker run both passed. |
+| Python | Used a dictionary and a function resolved by global name, so the REPL could replace the policy in place. When the REPL code and standalone worker were combined, the worker's `sys` import was restored before the integrated test. |
+| Rust | Passed the discount policy as a function argument to reuse the same order map. The worker reused one input buffer and flushed each response. Both the standalone example and the optimized worker passed their observed checks. |
 
 ### Add a combination
 
