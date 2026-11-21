@@ -1,0 +1,116 @@
+{
+  "program": "program-1",
+  "model": "gpt-6.2-sol",
+  "harness": "codex",
+  "timestamp_utc": "2026-11-21T09:42:50.147391+00:00",
+  "environment": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+    "machine": "x86_64",
+    "logical_cpus": 4,
+    "driver_python": "3.11.8"
+  },
+  "warmup_per_round": 1000,
+  "requests_per_round": 10000,
+  "rounds": 5,
+  "variants": [
+    {
+      "id": "sbcl",
+      "language": "common-lisp",
+      "runtime_version": "SBCL 2.5.0.roswell",
+      "nonblank_source_lines": 18,
+      "build_ms": 1073.437,
+      "executable_bytes": 36343432,
+      "startup_us": {
+        "p50": 5420.4,
+        "p95": 5623.3,
+        "p99": 5623.3
+      },
+      "round_trip_us": {
+        "p50": 71.1,
+        "p95": 138.2,
+        "p99": 499.0
+      },
+      "verified_requests": 50000
+    },
+    {
+      "id": "ecl",
+      "language": "common-lisp",
+      "runtime_version": "ECL 24.5.10",
+      "nonblank_source_lines": 18,
+      "build_ms": 994.118,
+      "executable_bytes": 56808,
+      "startup_us": {
+        "p50": 75146.701,
+        "p95": 114156.941,
+        "p99": 114156.941
+      },
+      "round_trip_us": {
+        "p50": 81.7,
+        "p95": 159.7,
+        "p99": 484.0
+      },
+      "verified_requests": 50000
+    },
+    {
+      "id": "python",
+      "language": "python",
+      "runtime_version": "Python 3.11.8",
+      "nonblank_source_lines": 17,
+      "build_ms": null,
+      "executable_bytes": null,
+      "startup_us": {
+        "p50": 12923.4,
+        "p95": 13564.605,
+        "p99": 13564.605
+      },
+      "round_trip_us": {
+        "p50": 78.0,
+        "p95": 141.3,
+        "p99": 343.0
+      },
+      "verified_requests": 50000
+    },
+    {
+      "id": "rust",
+      "language": "rust",
+      "runtime_version": "rustc 1.86.0 (05f9846f8 2025-03-31)",
+      "nonblank_source_lines": 41,
+      "build_ms": 1061.235,
+      "executable_bytes": 4047768,
+      "startup_us": {
+        "p50": 1393.1,
+        "p95": 2453.301,
+        "p99": 2453.301
+      },
+      "round_trip_us": {
+        "p50": 45.0,
+        "p95": 113.1,
+        "p99": 189.4
+      },
+      "verified_requests": 50000
+    },
+    {
+      "id": "clojure",
+      "language": "clojure",
+      "runtime_version": "1.10.1",
+      "nonblank_source_lines": 19,
+      "build_ms": null,
+      "executable_bytes": null,
+      "startup_us": {
+        "p50": 1550307.602,
+        "p95": 1833381.409,
+        "p99": 1833381.409
+      },
+      "round_trip_us": {
+        "p50": 86.9,
+        "p95": 172.0,
+        "p99": 809.5
+      },
+      "verified_requests": 50000
+    }
+  ],
+  "productivity": {
+    "baseline": "Retrospective; implementation time, tokens and interventions were not recorded.",
+    "trials": []
+  }
+}

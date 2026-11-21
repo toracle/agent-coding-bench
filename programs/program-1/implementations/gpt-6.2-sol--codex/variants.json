@@ -1,0 +1,34 @@
+{
+  "model": "gpt-6.2-sol",
+  "harness": "codex",
+  "variants": [
+    {
+      "id": "sbcl", "language": "common-lisp", "source": "common-lisp/main.lisp",
+      "version": ["{sbcl}", "--version"],
+      "build": ["{sbcl}", "--noinform", "--no-userinit", "--no-sysinit", "--non-interactive", "--eval", "(load (compile-file \"{source}\" :output-file \"{out}/main.fasl\"))", "--eval", "(sb-ext:save-lisp-and-die \"{out}/worker\" :executable t :toplevel #'main)"],
+      "run": ["{out}/worker"], "artifact": "worker"
+    },
+    {
+      "id": "ecl", "language": "common-lisp", "source": "common-lisp/main.lisp",
+      "version": ["{ecl}", "--version"],
+      "build": ["{ecl}", "-norc", "-eval", "(require :cmp)", "-eval", "(compile-file \"{source}\" :system-p t :output-file \"{out}/main.o\")", "-eval", "(c:build-program \"{out}/worker\" :lisp-files (list \"{out}/main.o\") :epilogue-code '(main))", "-eval", "(ext:quit)"],
+      "run": ["{out}/worker"], "artifact": "worker"
+    },
+    {
+      "id": "python", "language": "python", "source": "python/main.py",
+      "version": ["{python}", "--version"],
+      "run": ["{python}", "-B", "{source}"]
+    },
+    {
+      "id": "rust", "language": "rust", "source": "rust/main.rs",
+      "version": ["rustc", "--version"],
+      "build": ["rustc", "--edition", "2021", "-O", "{source}", "-o", "{out}/worker"],
+      "run": ["{out}/worker"], "artifact": "worker"
+    },
+    {
+      "id": "clojure", "language": "clojure", "source": "clojure/main.clj",
+      "version": ["clojure", "-e", "(println (clojure-version))"],
+      "run": ["clojure", "{source}"]
+    }
+  ]
+}
