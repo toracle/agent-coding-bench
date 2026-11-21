@@ -1,19 +1,14 @@
-Eval [
-    | orders writeLine |
-    orders := Dictionary new.
-    orders at: 'A' put: 9.
-    orders at: 'B' put: 12.
+| orders input output request quantity discount cents |
+orders := Dictionary new.
+orders at: #[65] put: 9.
+orders at: #[66] put: 12.
+input := Stdio stdin.
+output := Stdio stdout.
+output nextPutAll: 'ready' asByteArray; nextPut: 10; flush.
 
-    writeLine := [:line |
-        stdout nextPutAll: line; nextPut: (Character value: 10); flush
-    ].
-    writeLine value: 'ready'.
-
-    [stdin atEnd] whileFalse: [
-        | quantity discount cents |
-        quantity := orders at: stdin nextLine.
-        discount := quantity >= 10 ifTrue: [10] ifFalse: [0].
-        cents := (quantity * 1250 * (100 - discount)) // 100.
-        writeLine value: cents printString
-    ]
-]
+[request := input upTo: 10. request notEmpty] whileTrue: [
+    quantity := orders at: request.
+    discount := quantity >= 10 ifTrue: [10] ifFalse: [0].
+    cents := (quantity * 1250 * (100 - discount)) // 100.
+    output nextPutAll: cents printString asByteArray; nextPut: 10; flush
+]!

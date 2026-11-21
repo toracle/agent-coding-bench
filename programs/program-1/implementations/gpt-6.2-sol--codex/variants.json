@@ -31,10 +31,10 @@
       "run": ["clojure", "{source}"]
     },
     {
-      "id": "gnu-smalltalk", "language": "smalltalk", "source": "smalltalk/main.st",
+      "id": "pharo", "language": "smalltalk", "source": "smalltalk/main.st",
       "opt_in": true,
-      "version": ["gst", "--version"],
-      "run": ["gst", "-q", "{source}"]
+      "version": ["{pharo_vm}", "{pharo_image}", "eval", "Smalltalk version"],
+      "run": ["{pharo_vm}", "{pharo_image}", "st", "--quit", "{source}"]
     }
   ]
 }

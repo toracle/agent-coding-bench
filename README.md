@@ -24,9 +24,16 @@ python3 bench.py --output result.json
 python3 bench.py --variant ecl --variant rust --requests 1000 --rounds 2
 ```
 
-GNU Smalltalk is an opt-in variant. With `gst` on PATH, run it with
-`python3 bench.py --variant gnu-smalltalk`. Its worker uses GNU Smalltalk's
-standard input and output streams and runs directly from source.
+Pharo Smalltalk is an opt-in variant. Install the Pharo 13 image and
+headless launcher using [Pharo's setup script](https://get.pharo.org/64/130+vm)
+in a separate directory. Then run from this checkout:
+
+```sh
+PHARO_VM=/path/to/pharo PHARO_IMAGE=/path/to/Pharo.image \
+  python3 bench.py --variant pharo
+```
+
+The worker runs from source inside the Pharo image.
 
 The runner builds each selected variant once and rotates execution order. Each round
 starts a new worker, measures time to its `ready` response, and then warms up
@@ -39,7 +46,7 @@ include local pipe I/O and the benchmark client's work.
 ### Initial results
 
 Five rounds per variant on Linux x86-64 under WSL2, with 50,000 measured
-requests per variant. GNU Smalltalk was added after this run and has no
+requests per variant. Pharo was added after this run and has no
 recorded results yet. See the [machine-readable report](reports/program-1-gpt-6.2-sol--codex.json).
 
 | Language | Runtime | Source lines | Compile / build (ms) | Executable size | Ready p50 (ms) | Request p50 (µs) | Request p95 (µs) | Request p99 (µs) |

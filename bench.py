@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import platform
 import select
+import shutil
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
@@ -108,6 +109,15 @@ def main():
     roswell = f"impls/{machine}/linux"
     tools = {"sbcl": runtime("sbcl", f"{roswell}/sbcl-bin/2.5.0/bin/sbcl"),
              "ecl": runtime("ecl", f"{roswell}/ecl/24.5.10/bin/ecl"), "python": sys.executable}
+    if any(variant["id"] == "pharo" for variant in variants):
+        vm = os.environ.get("PHARO_VM", "pharo")
+        image = Path(os.environ.get("PHARO_IMAGE", "Pharo.image")).expanduser().resolve()
+        launcher = shutil.which(os.path.expanduser(vm))
+        if launcher is None:
+            parser.error("Pharo launcher not found; set PHARO_VM to its path")
+        if not image.is_file():
+            parser.error("Pharo image not found; set PHARO_IMAGE to its path")
+        tools.update(pharo_vm=str(Path(launcher).absolute()), pharo_image=str(image))
     with TemporaryDirectory(prefix="agent-program-bench-") as directory:
         prepared = []
         for variant in variants:
