@@ -79,6 +79,10 @@ were not recorded.
 | Rust | Passed the discount policy as a function argument to reuse the same order map. The worker reused one input buffer and flushed each response. Both the standalone example and the optimized worker passed their observed checks. |
 | Smalltalk | Switched from GNU Smalltalk to Pharo and used binary standard streams for the pipe protocol. The first launch tried to create a preferences directory. Passing `--no-default-preferences` allowed the version probe and worker to run in the benchmark environment. |
 
+See the [live development journal](development/live-image/README.md) for a
+verified policy change in running SBCL, ECL, and Pharo sessions, with notes
+on the earlier Python and Rust workflows.
+
 ### Add a combination
 
 Add a workload under `programs/<program>/` with a specification and
