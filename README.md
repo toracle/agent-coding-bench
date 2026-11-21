@@ -37,18 +37,20 @@ include local pipe I/O and the benchmark client's work.
 Five rounds per variant on Linux x86-64 under WSL2, with 50,000 measured
 requests per variant. See the [machine-readable report](reports/program-1-gpt-6.2-sol--codex.json).
 
-| Language | Runtime | Source lines | Compile / build (ms) | Ready p50 (ms) | Request p50 (µs) | Request p95 (µs) | Request p99 (µs) |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| common-lisp | sbcl | 18 | 1,073.44 | 5.42 | 71.1 | 138.2 | 499.0 |
-| common-lisp | ecl | 18 | 994.12 | 75.15 | 81.7 | 159.7 | 484.0 |
-| python | python | 17 | — | 12.92 | 78.0 | 141.3 | 343.0 |
-| rust | rust | 41 | 1,061.23 | 1.39 | 45.0 | 113.1 | 189.4 |
-| clojure | clojure | 19 | — | 1550.31 | 86.9 | 172.0 | 809.5 |
+| Language | Runtime | Source lines | Compile / build (ms) | Executable size | Ready p50 (ms) | Request p50 (µs) | Request p95 (µs) | Request p99 (µs) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| common-lisp | sbcl | 18 | 1,073.44 | 34.66 MiB | 5.42 | 71.1 | 138.2 | 499.0 |
+| common-lisp | ecl | 18 | 994.12 | 55.48 KiB | 75.15 | 81.7 | 159.7 | 484.0 |
+| python | python | 17 | — | — | 12.92 | 78.0 | 141.3 | 343.0 |
+| rust | rust | 41 | 1,061.23 | 3.86 MiB | 1.39 | 45.0 | 113.1 | 189.4 |
+| clojure | clojure | 19 | — | — | 1550.31 | 86.9 | 172.0 | 809.5 |
 
 Compile / build is one elapsed build per compiled variant, including compiler
 startup and linking or image saving where applicable. A dash means the manifest
 runs the source directly. Any work those runtimes do before sending `ready`
-is included in the readiness time.
+is included in the readiness time. Executable sizes are for the generated files.
+SBCL embeds its runtime and core in the executable. ECL loads `libecl`
+separately. Python and Clojure produce no executable in this benchmark.
 
 ### What happened during code generation
 
