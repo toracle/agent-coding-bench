@@ -85,7 +85,10 @@ def main():
     implementation = program / "implementations" / args.agent
     workload = json.loads((program / "workload.json").read_text())
     manifest = json.loads((implementation / "variants.json").read_text())
-    variants = [v for v in manifest["variants"] if not args.variant or v["id"] in args.variant]
+    variants = [
+        variant for variant in manifest["variants"]
+        if (variant["id"] in args.variant if args.variant else not variant.get("opt_in"))
+    ]
     if not variants or (args.variant and {v["id"] for v in variants} != set(args.variant)):
         parser.error("unknown variant")
 

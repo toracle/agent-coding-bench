@@ -29,6 +29,12 @@
       "id": "clojure", "language": "clojure", "source": "clojure/main.clj",
       "version": ["clojure", "-e", "(println (clojure-version))"],
       "run": ["clojure", "{source}"]
+    },
+    {
+      "id": "gnu-smalltalk", "language": "smalltalk", "source": "smalltalk/main.st",
+      "opt_in": true,
+      "version": ["gst", "--version"],
+      "run": ["gst", "-q", "{source}"]
     }
   ]
 }
