@@ -1,7 +1,7 @@
 # Agent Program Bench
 
-Compare both the performance of a program and the work an AI coding agent
-takes to deliver it. A submission is identified by **program, model, harness,
+Compare the runtime performance of programs implemented with AI coding agents.
+A submission is identified by **program, model, harness,
 language, and runtime variant**. The same Common Lisp implementation, for
 example, can be measured with either ECL or SBCL.
 
@@ -27,8 +27,8 @@ python3 bench.py --variant ecl --variant rust --requests 1000 --rounds 2
 The runner builds each variant once and rotates execution order. Each round
 starts a new worker, measures time to its `ready` response, and then warms up
 and measures requests on that same worker. Every response is checked. Reported
-p50, p95 and p99 are nearest-rank percentiles. The report also includes build
-time, executable size, and nonblank source lines. Executable size excludes
+p50, p95 and p99 are nearest-rank percentiles. Build time is recorded separately
+from startup and request latency, alongside executable size and nonblank source lines. Executable size excludes
 shared libraries, such as `libecl`. Requests are sequential and timings
 include local pipe I/O and the benchmark client's work.
 
@@ -45,27 +45,13 @@ requests per variant. See the [machine-readable report](reports/program-1-gpt-6.
 | rust | rust | 41 | 1.39 | 45.0 | 113.1 | 189.4 |
 | clojure | clojure | 19 | 1550.31 | 86.9 | 172.0 | 809.5 |
 
-### Measure agent productivity
+### Development notes
 
-Start one new agent session per language in a separate checkout with the same
-starting snapshot. Give each session the same task specification, acceptance
-cases, and budget. For a from-scratch trial, remove that language's reference
-source from the starting snapshot before launching the agent. Save the task
-prompt and starting revision alongside trial results for reproducibility.
-
-```sh
-python3 record_trial.py --variant python --output trial.json -- \
-  codex exec -m gpt-6.2-sol 'Implement the Python worker in its manifest source path using programs/program-1/spec.md. Verify the worker.'
-python3 bench.py --variant python --trial trial.json --output result.json
-```
-
-The recorder captures agent wall time and exit status, then separately times
-a clean build and protocol acceptance check. A report can include multiple
-trial files. Token counts and human intervention counts are nullable fields
-for data supplied by the harness or trial operator. An agent process exiting
-successfully and its implementation passing acceptance are separate outcomes.
-The initial implementations are retrospective and have no recorded
-implementation wall time, token counts, or intervention counts.
+When relevant, note the agent's generation time if it was captured, whether
+the implementation passed on the first try, and what caused any retries or
+detours. Keep these observations with the implementation or in its pull
+request. The Program 1 implementations grew out of an exploratory session,
+and per-language generation times and retry counts were not recorded.
 
 ### Add a combination
 

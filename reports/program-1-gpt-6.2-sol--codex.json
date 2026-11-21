@@ -108,9 +108,5 @@
       },
       "verified_requests": 50000
     }
-  ],
-  "productivity": {
-    "baseline": "Retrospective; implementation time, tokens and interventions were not recorded.",
-    "trials": []
-  }
+  ]
 }

@@ -77,8 +77,6 @@ def main():
     parser.add_argument("--requests", type=int, default=10000)
     parser.add_argument("--rounds", type=int, default=5)
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--trial", type=Path, action="append", default=[],
-                        help="include a productivity trial JSON file; may be repeated")
     args = parser.parse_args()
     if min(args.requests, args.rounds) < 1 or args.warmup < 0:
         parser.error("requests and rounds must be positive and warmup nonnegative")
@@ -105,14 +103,6 @@ def main():
     }
     machine = platform.machine().replace("_", "-")
     roswell = f"impls/{machine}/linux"
-    trials = [json.loads(path.read_text()) for path in args.trial]
-    for trial in trials:
-        if any(trial[key] != result[key] for key in ("program", "model", "harness")):
-            parser.error("trial program, model and harness must match the report")
-    result["productivity"] = {
-        "baseline": "Retrospective; implementation time, tokens and interventions were not recorded.",
-        "trials": trials,
-    }
     tools = {"sbcl": runtime("sbcl", f"{roswell}/sbcl-bin/2.5.0/bin/sbcl"),
              "ecl": runtime("ecl", f"{roswell}/ecl/24.5.10/bin/ecl"), "python": sys.executable}
     with TemporaryDirectory(prefix="agent-program-bench-") as directory:
