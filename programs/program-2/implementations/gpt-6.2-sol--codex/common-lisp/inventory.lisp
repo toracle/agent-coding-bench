@@ -37,12 +37,45 @@
 (defun sql (statement)
   (dbi:do-sql mito:*connection* statement))
 
+;; ECL 24.5.10 with the pinned CL-DBI build double-steps the SQLite
+;; statement in the stock fetch method. Keep the fix on our connection class.
+#+ecl
+(progn
+  (defclass program2-sqlite-connection (dbd.sqlite3:dbd-sqlite3-connection) ())
+  (defmethod dbi:connection-driver-type ((connection program2-sqlite-connection))
+    (declare (ignore connection))
+    :sqlite3)
+
+  (defmethod dbi.driver:fetch-using-connection ((connection program2-sqlite-connection)
+                                                (query dbd.sqlite3:dbd-sqlite3-query))
+    (declare (ignore connection) (optimize (speed 0) (safety 3) (debug 3)))
+    (if (slot-boundp query 'dbi.driver::results)
+        (pop (dbi.driver:query-results query))
+        (let ((statement (dbi.driver:query-prepared query)))
+          (handler-bind ((sqlite:sqlite-error
+                           (lambda (failure)
+                             (declare (ignore failure))
+                             (sqlite:finalize-statement statement)
+                             (return-from dbi.driver:fetch-using-connection nil))))
+            (when (sqlite:step-statement statement)
+              (let ((fields (if (slot-boundp query 'dbi.driver::fields)
+                                (dbi.driver:query-fields query)
+                                (setf (dbi.driver:query-fields query)
+                                      (sqlite:statement-column-names statement)))))
+                (loop for index from 0 below (length fields)
+                      collect (sqlite:statement-column-value statement index)))))))))
+
+(defun connect-sqlite (database)
+  (let ((connection (dbi:connect :sqlite3 :database-name database)))
+    #+ecl (change-class connection 'program2-sqlite-connection)
+    #-ecl connection))
+
 (defmacro with-db (&body body)
   `(let ((mito:*connection*
            (progn
              (unless (uiop:string-prefix-p "sqlite:///" *database-url*)
                (error "This build supports sqlite:/// database URLs"))
-             (dbi:connect :sqlite3 :database-name (subseq *database-url* 10)))))
+             (connect-sqlite (subseq *database-url* 10)))))
      (unwind-protect
           (progn (sql "PRAGMA foreign_keys = ON")
                  (sql "PRAGMA busy_timeout = 10000")

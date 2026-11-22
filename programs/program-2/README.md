@@ -6,6 +6,8 @@ start at the repository root. The runner opens a local server, migrates and
 seeds disposable SQLite files, checks the server and CLI over HTTP, and times
 separate mixed and expiry workloads. Add `--contract-only` for the correctness
 checks or `--output /path/to/result.json` to save measurements.
+`--expiry-setup-clients` controls parallel seeding for the expiry scenarios.
+The mixed workload and the timed clock advance each still use one client.
 
 ## Python · Flask, Waitress and SQLAlchemy
 
@@ -68,7 +70,8 @@ python3 programs/program-2/run.py --variant sbcl
 ```
 
 For ECL use `ecl -norc -shell "$impl/launch.lisp" -- build`, a separate
-`PROGRAM2_LISP_FASL` path, and `--variant ecl`. Do not share FASLs across
+`PROGRAM2_LISP_FASL` path such as `/tmp/program2-ecl-debug.fas`, and
+`--variant ecl`. Keep an ASDF cache across runs to reuse native dependencies. Do not share FASLs across
 implementations. `debug` requests `(speed 0) (debug 3) (safety 3)`.
 `optimized` requests `(speed 3) (debug 1) (safety 3)`. These declarations apply
 only to the application. They leave dependency builds and safety unchanged.

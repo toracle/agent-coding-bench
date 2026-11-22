@@ -1,11 +1,13 @@
-(require :asdf)
+;; Keep loader diagnostics separate from the CLI's JSON response.
+(let ((*standard-output* *error-output*))
+  (require :asdf))
 
-(let ((setup (uiop:getenv "PROGRAM2_QUICKLISP_SETUP")))
-  (when setup (load setup)))
-
-(unless (find-package :ql)
-  (error "Set PROGRAM2_QUICKLISP_SETUP to a Quicklisp setup.lisp"))
-(funcall (find-symbol "QUICKLOAD" :ql) '(:dbd-sqlite3 :hunchentoot :yason :dexador :mito) :silent t)
+(let ((*standard-output* *error-output*))
+  (let ((setup (uiop:getenv "PROGRAM2_QUICKLISP_SETUP")))
+    (when setup (load setup)))
+  (unless (find-package :ql)
+    (error "Set PROGRAM2_QUICKLISP_SETUP to a Quicklisp setup.lisp"))
+  (funcall (find-symbol "QUICKLOAD" :ql) '(:dbd-sqlite3 :hunchentoot :yason :dexador :mito) :silent t))
 
 (let* ((root (uiop:pathname-directory-pathname *load-truename*))
        (source (merge-pathnames "inventory.lisp" root))
@@ -22,5 +24,6 @@
          (declare (ignore output warnings))
          (uiop:quit (if failed 1 0)))))
     (t
-     (load (or file source))
+     (let ((*standard-output* *error-output*))
+       (load (or file source)))
      (uiop:quit (funcall (find-symbol "MAIN" :inventory-bench) root args)))))

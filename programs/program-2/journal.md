@@ -67,6 +67,20 @@ dependency setup helped advance the native build. Loading dependencies from
 source hit ECL's foreign-code limitation on the `clines` form, so the native
 dependency path is the reproducible option.
 
+Once dependencies loaded, the first migration timed out in the SQLite
+driver. A direct SQLite call worked, and a trace of CL-DBI's fetch showed
+two statement steps where one was expected. A connection subclass isolated
+the single-step fix to Program 2 on ECL. Migration then passed and seed
+exposed a second assumption. CL-DBI inferred the dialect from the class's
+package, so the subclass now explicitly identifies itself as SQLite.
+The first contract then reached CLI verification, where ASDF emitted a
+loader message on stdout before the JSON. Routing loader diagnostics to
+stderr preserved the CLI output contract. Both ECL profiles use the same
+driver workaround and dependency cache. The repeated HTTP calls used to
+prepare the expiry fixtures took considerably longer than the clock advance
+being timed. The runner now supports parallel fixture preparation while
+keeping a single client for the measured clock advance.
+
 ## Pharo
 
 Copied the image, loaded Glorp and the SQLite driver into the copy and used

@@ -234,11 +234,28 @@ def mixed(submission, cycles):
                 "throughput_rps": round(len(samples) / duration, 2), "latency_us": latency(samples)}
 
 
-def expiry(submission, count, expired):
+def expiry(submission, count, expired, setup_clients):
     submission.prepare(stock_a=count)
     with submission.serve() as (client, _):
-        for index in range(count):
-            client.reserve(f"expiry-{index}", [("A", 1)], 1 if index < expired else 2)
+        def prepare_group(writer, offset):
+            for index in range(offset, count, setup_clients):
+                writer.reserve(f"expiry-{index}", [("A", 1)], 1 if index < expired else 2)
+
+        if setup_clients == 1:
+            prepare_group(client, 0)
+        else:
+            client.close()
+
+            def prepare_in_worker(offset):
+                writer = Client(submission.port)
+                try:
+                    prepare_group(writer, offset)
+                finally:
+                    writer.close()
+
+            with ThreadPoolExecutor(max_workers=setup_clients) as pool:
+                list(pool.map(prepare_in_worker, range(setup_clients)))
+            client.stock("A", 0)
         response = client.advance("expiry-clock", 1)
         assert response[1] == {"now": 1, "expired": expired}
         client.stock("A", expired)
@@ -251,6 +268,7 @@ def main():
     parser.add_argument("--contract-only", action="store_true")
     parser.add_argument("--cycles", type=int, default=250)
     parser.add_argument("--reservations", type=int, default=2000)
+    parser.add_argument("--expiry-setup-clients", type=int)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     if args.cycles < 1 or args.reservations < 2:
@@ -258,6 +276,12 @@ def main():
     manifest = json.loads((HERE / "variants.json").read_text())
     if args.variant not in manifest:
         parser.error("unknown variant")
+    setup_clients = (
+        args.expiry_setup_clients if args.expiry_setup_clients is not None
+        else manifest[args.variant].get("expiry_setup_clients", 1)
+    )
+    if not 1 <= setup_clients <= 32:
+        parser.error("expiry setup clients must be between 1 and 32")
     result = {"variant": args.variant, "platform": platform.platform(), "contract": "passed"}
     with TemporaryDirectory(prefix="bench-program-2-") as scratch:
         root = Path(scratch)
@@ -271,8 +295,11 @@ def main():
         if not args.contract_only:
             result["request_concurrency"] = 1
             result["mixed"] = mixed(submission("mixed"), args.cycles)
-            result["sparse_expiry"] = expiry(submission("sparse"), args.reservations, max(1, args.reservations // 20))
-            result["dense_expiry"] = expiry(submission("dense"), args.reservations, args.reservations * 9 // 10)
+            result["expiry_setup_clients"] = setup_clients
+            result["sparse_expiry"] = expiry(submission("sparse"), args.reservations,
+                                             max(1, args.reservations // 20), setup_clients)
+            result["dense_expiry"] = expiry(submission("dense"), args.reservations,
+                                            args.reservations * 9 // 10, setup_clients)
     output = json.dumps(result, indent=2) + "\n"
     if args.output:
         args.output.write_text(output)

@@ -51,6 +51,7 @@
   },
   "ecl": {
     "directory": "implementations/gpt-6.2-sol--codex/common-lisp",
+    "expiry_setup_clients": 8,
     "server": [
       "{ecl}",
       "-norc",
