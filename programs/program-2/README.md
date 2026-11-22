@@ -102,6 +102,10 @@ The application itself is filed in from `app.st` when the image starts.
 
 ## First SQLite results
 
+The table records the original per-reservation expiry implementation. See the
+[controlled SBCL bulk-expiry comparison](journal.md#follow-up--bulk-expiry)
+for the current Common Lisp expiry path.
+
 Each measured run used one sequential client, 1,000 mixed requests, and two
 2,000-reservation expiry scenarios (100 and 1,800 due). The host was Linux under
 WSL2. These exploratory runs share the host with some setup work. Readiness

@@ -34,8 +34,8 @@
 
 (defun invalid () (failure 400 "invalid_request"))
 
-(defun sql (statement)
-  (dbi:do-sql mito:*connection* statement))
+(defun sql (statement &optional parameters)
+  (dbi:do-sql mito:*connection* statement parameters))
 
 ;; ECL 24.5.10 with the pinned CL-DBI build double-steps the SQLite
 ;; statement in the stock fetch method. Keep the fix on our connection class.
@@ -175,13 +175,23 @@
 (defun advance-clock (clock seconds)
   (let ((now (+ (clock-now clock) seconds)))
     (when (> now +limit+) (return-from advance-clock (invalid)))
-    (let ((due (mito:select-dao 'reservation
-                 (sxql:where (:and (:= :status "pending") (:<= :expires-at now))))))
-      (dolist (row due)
-        (change-reservation (reservation-id row) "expired"))
+    ;; Group while the reservations are still pending. The caller holds the write
+    ;; transaction across stock restoration, state changes, and the replay record.
+    (dolist (total (mito:retrieve-by-sql
+                    "SELECT i.sku, SUM(i.quantity)
+                     FROM reservation_items i
+                     JOIN reservations r ON r.id = i.reservation_id
+                     WHERE r.status = ? AND r.expires_at <= ?
+                     GROUP BY i.sku"
+                    :binds (list "pending" now) :format :values))
+      (destructuring-bind (sku quantity) total
+        (sql "UPDATE stock SET available = available + ? WHERE sku = ?"
+             (list quantity sku))))
+    (let ((expired (sql "UPDATE reservations SET status = ? WHERE status = ? AND expires_at <= ?"
+                        (list "expired" "pending" now))))
       (setf (clock-now clock) now)
       (mito:save-dao clock)
-      (values 200 (object "now" now "expired" (length due))))))
+      (values 200 (object "now" now "expired" expired)))))
 
 (defun identifier-p (text limit lowercase)
   (and (stringp text) (<= 1 (length text) limit)

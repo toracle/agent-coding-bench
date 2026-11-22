@@ -114,3 +114,30 @@ their SQLite-specific connection setup and locking inside the store.
 SQLAlchemy rendered the table and index DDL for all three dialects. The
 PostgreSQL and MySQL transaction and HTTP contract checks still require
 running instances.
+
+## Follow-up · Bulk expiry
+
+The original Common Lisp path selected due reservations, then reloaded each
+reservation and its items, loaded and saved the affected stock, and saved
+the reservation. It also prepared an individual response that the clock
+endpoint discarded. Rust's original path also iterated over reservations.
+It updated stock with SQL arithmetic in one statement per item.
+
+The revised Common Lisp clock handler groups due quantities by SKU in one
+query, restores each affected SKU once, and updates all due reservation
+statuses in one statement. The response count comes from the affected rows.
+Stock restoration, status changes, the clock and the idempotency response
+remain in the same write transaction.
+
+I compiled both versions to SBCL application FASLs
+using the same optimized compiler policy, alternated run order, and used a
+fresh SQLite snapshot for each request. Every run started with 2,000 pending
+reservations, expired exactly 1,800, and restored 1,800 units of stock.
+
+| Path | Individual HTTP timings (ms) | Median (ms) |
+| --- | --- | ---: |
+| Per reservation | 1349.974, 1275.032, 1401.594 | 1349.974 |
+| Bulk | 29.677, 52.662, 27.811 | 29.677 |
+
+The measured median fell by about 45 times. The change targets clock advance.
+The comparison uses SBCL for both paths and does not measure a bulk Rust path.
