@@ -34,7 +34,14 @@ the JDK server and client. Migration, CLI verification and restart checks
 each start a JVM and load the dependencies. The bench invokes those commands
 outside steady-state request timing. Toucan 2 and SQLite JDBC loaded from
 Clojars and Maven Central with a temporary Maven cache. The first integrated
-contract run passed.
+contract run passed. When the contract later grew to cover a CLI write and
+HTTP replay, the old driver connection went idle while the CLI JVM started.
+Closing that connection before invoking a separate client fixed the runner.
+The first mixed workload showed a median of 51.9 ms with the JDK HTTP
+server's default socket settings under build load. The submitted variant
+enables TCP_NODELAY for tiny request/response pairs. In the later run
+the median was 8.4 ms, and the expanded CLI contract passed.
+The runs took place at different times under different background load.
 
 ## Common Lisp · SBCL
 
@@ -55,22 +62,30 @@ The initial ECL dependency build timed out while compiling native
 dependencies. Reusing the partial cache advanced through CFFI and the
 SQLite driver. A separate startup probe found that ECL needs `--` before
 application arguments for UIOP to return them in script mode. This difference
-lives in the launcher manifest.
+lives in the launcher manifest. Lowering the C compiler optimization during
+dependency setup helped advance the native build. Loading dependencies from
+source hit ECL's foreign-code limitation on the `clines` form, so the native
+dependency path is the reproducible option.
 
 ## Pharo
 
 Copied the image, loaded Glorp and the SQLite driver into the copy and used
 Zinc for HTTP. The first migration failed because Glorp derives an uppercase
-table-initializer selector. Generating the selector and descriptor table
-name consistently fixed migration and seed. The first HTTP request found a
+table-initializer selector. Inspecting `DescriptorSystem >> #initializeTable:`
+in the installed image exposed that convention. Generating the selector
+and descriptor table name consistently fixed migration and seed. The first HTTP request found a
 Smalltalk keyword-message grouping error in validation. Explicitly nesting
 the Boolean expressions fixed it, and the first complete contract passed.
 The dependencies live in the prepared image, while the application stays
-in a text source file loaded at startup.
+in a text source file loaded at startup. The earlier [live-image journal](../../development/live-image/README.md)
+shows a separate hot-reload exercise; this run focused on the REST and ORM
+implementation.
 
 ## Portability
 
 SQLite is the verified reference backend. Python delegates connection
 selection to SQLAlchemy, while Rust, Clojure, Common Lisp and Pharo keep
-their SQLite-specific connection setup and locking inside the store. No
-PostgreSQL or MySQL result is reported.
+their SQLite-specific connection setup and locking inside the store.
+SQLAlchemy rendered the table and index DDL for all three dialects. The
+PostgreSQL and MySQL transaction and HTTP contract checks still require
+running instances.

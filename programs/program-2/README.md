@@ -106,12 +106,21 @@ is sampled by polling every 10 ms. Expiry entries are single HTTP calls.
 | sbcl-debug | 3548.4 | 285.8 | 2.35 | 11.62 | 14.18 | 97.8 | 1335.4 |
 | sbcl-optimized | 3174.6 | 435.3 | 1.86 | 5.09 | 12.15 | 79.0 | 1767.3 |
 | pharo | 1873.6 | 67.7 | 14.29 | 32.96 | 50.50 | 325.3 | 3294.5 |
+| clojure | 27456.4 | 80.7 | 8.36 | 35.00 | 61.25 | 456.1 | 7756.0 |
 
 Rust's clean dev and release builds took about 83 s and 114 s including
 dependencies. The executables measured 31.0 MiB and 2.59 MiB. SBCL's warm
 profile build commands took 9.4 s and 8.1 s including launcher and dependency
 loading. The generated application FASLs measured 101.6 KiB and 69.3 KiB.
 Both FASLs are loaded by SBCL at runtime.
+
+## Database portability status
+
+The reference workload and HTTP contract use SQLite. Python selects its
+database dialect through SQLAlchemy, and the schema DDL renders for SQLite,
+PostgreSQL, and MySQL. The other submissions currently ship SQLite adapters.
+PostgreSQL and MySQL need separate driver setup and the same HTTP and
+transaction checks against running database servers before deployment.
 
 ## Launch a server and use its CLI
 

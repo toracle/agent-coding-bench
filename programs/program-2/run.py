@@ -174,6 +174,8 @@ def contract(submission):
         assert client.advance("tick-4", 2)[1] == {"now": 14, "expired": 1}
         client.stock("B", 5)
 
+        # A separate CLI process can outlive the server idle keep-alive timeout.
+        client.close()
         base = f"http://127.0.0.1:{submission.port}"
         cli = submission.command("cli", "--base-url", base)
         good = subprocess.run([*cli, "stock", "A"], capture_output=True, text=True, timeout=45, cwd=submission.source)
