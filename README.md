@@ -83,6 +83,14 @@ See the [live development journal](development/live-image/README.md) for a
 verified policy change in running SBCL, ECL, and Pharo sessions, with notes
 on the earlier Python and Rust workflows.
 
+## Program 2 · Inventory Reservations
+
+The [Program 2 specification](programs/program-2/spec.md) covers a REST
+server, an HTTP CLI, and transactional inventory persisted through an ORM.
+The reference database is file-backed SQLite. PostgreSQL and MySQL are
+deployment targets subject to separate compatibility checks. Program 2
+needs an HTTP workload runner.
+
 ### Add a combination
 
 Add a workload under `programs/<program>/` with a specification and
