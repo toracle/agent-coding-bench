@@ -88,8 +88,9 @@ on the earlier Python and Rust workflows.
 The [Program 2 specification](programs/program-2/spec.md) covers a REST
 server, an HTTP CLI, and transactional inventory persisted through an ORM.
 The reference database is file-backed SQLite. PostgreSQL and MySQL are
-deployment targets subject to separate compatibility checks. Program 2
-needs an HTTP workload runner.
+deployment targets subject to separate compatibility checks. See the
+[runner and setup guide](programs/program-2/README.md) and the
+[development journal](programs/program-2/journal.md).
 
 ### Add a combination
 
@@ -97,4 +98,5 @@ Add a workload under `programs/<program>/` with a specification and
 `workload.json` containing a readiness line and request/response cases.
 Add an agent directory under that program's `implementations/` with model
 and harness metadata and a `variants.json` listing its language implementations.
-The current runner supports line-based workers.
+The root runner supports the line-based workers for Program 1. Program 2
+has its own HTTP runner.

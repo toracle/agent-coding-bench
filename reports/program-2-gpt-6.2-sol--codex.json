@@ -1,0 +1,204 @@
+{
+  "program": "program-2",
+  "model": "gpt-6.2-sol",
+  "harness": "codex",
+  "database": "SQLite 3 (file-backed)",
+  "sqlite_configuration": "stock journal and synchronous settings; foreign keys enabled; busy timeout 10000 ms",
+  "measurement": "one exploratory run per row; workloads ran sequentially per server, with background setup activity on the host",
+  "results": [
+    {
+      "variant": "python",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+      "contract": "passed",
+      "request_concurrency": 1,
+      "mixed": {
+        "startup_ms": 903.215,
+        "requests": 1000,
+        "throughput_rps": 172.98,
+        "latency_us": {
+          "p50": 4949.0,
+          "p95": 14032.3,
+          "p99": 17976.7
+        }
+      },
+      "sparse_expiry": {
+        "active_before": 2000,
+        "expired": 100,
+        "request_ms": 39.689
+      },
+      "dense_expiry": {
+        "active_before": 2000,
+        "expired": 1800,
+        "request_ms": 257.058
+      },
+      "case": "python",
+      "stack": "CPython 3.11.8 / SQLAlchemy 2.0.44",
+      "profile": "default"
+    },
+    {
+      "variant": "rust",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+      "contract": "passed",
+      "request_concurrency": 1,
+      "mixed": {
+        "startup_ms": 12.517,
+        "requests": 1000,
+        "throughput_rps": 479.56,
+        "latency_us": {
+          "p50": 1444.0,
+          "p95": 6954.2,
+          "p99": 11039.6
+        }
+      },
+      "sparse_expiry": {
+        "active_before": 2000,
+        "expired": 100,
+        "request_ms": 14.979
+      },
+      "dense_expiry": {
+        "active_before": 2000,
+        "expired": 1800,
+        "request_ms": 215.286
+      },
+      "case": "rust-debug",
+      "stack": "rustc 1.86.0 / Diesel 2.2.12",
+      "profile": "dev",
+      "build": {
+        "seconds": 83,
+        "executable_bytes": 32462256,
+        "scope": "clean Cargo profile including dependencies"
+      }
+    },
+    {
+      "variant": "rust",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+      "contract": "passed",
+      "request_concurrency": 1,
+      "mixed": {
+        "startup_ms": 12.706,
+        "requests": 1000,
+        "throughput_rps": 773.34,
+        "latency_us": {
+          "p50": 972.5,
+          "p95": 2718.2,
+          "p99": 8283.4
+        }
+      },
+      "sparse_expiry": {
+        "active_before": 2000,
+        "expired": 100,
+        "request_ms": 7.204
+      },
+      "dense_expiry": {
+        "active_before": 2000,
+        "expired": 1800,
+        "request_ms": 69.967
+      },
+      "case": "rust-release",
+      "stack": "rustc 1.86.0 / Diesel 2.2.12",
+      "profile": "release",
+      "build": {
+        "seconds": 114.04,
+        "executable_bytes": 2711032,
+        "scope": "clean Cargo profile including dependencies"
+      }
+    },
+    {
+      "variant": "sbcl",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+      "contract": "passed",
+      "request_concurrency": 1,
+      "mixed": {
+        "startup_ms": 3548.386,
+        "requests": 1000,
+        "throughput_rps": 285.82,
+        "latency_us": {
+          "p50": 2350.701,
+          "p95": 11619.8,
+          "p99": 14179.4
+        }
+      },
+      "sparse_expiry": {
+        "active_before": 2000,
+        "expired": 100,
+        "request_ms": 97.798
+      },
+      "dense_expiry": {
+        "active_before": 2000,
+        "expired": 1800,
+        "request_ms": 1335.416
+      },
+      "case": "sbcl-debug",
+      "stack": "SBCL 2.5.0 / Mito (Quicklisp 2024-10-12)",
+      "profile": "debug",
+      "build": {
+        "build_ms": 9404.017,
+        "fasl_bytes": 104081,
+        "scope": "application compile with cached dependencies and launcher startup"
+      }
+    },
+    {
+      "variant": "sbcl",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+      "contract": "passed",
+      "request_concurrency": 1,
+      "mixed": {
+        "startup_ms": 3174.628,
+        "requests": 1000,
+        "throughput_rps": 435.29,
+        "latency_us": {
+          "p50": 1855.3,
+          "p95": 5090.0,
+          "p99": 12147.599
+        }
+      },
+      "sparse_expiry": {
+        "active_before": 2000,
+        "expired": 100,
+        "request_ms": 79.011
+      },
+      "dense_expiry": {
+        "active_before": 2000,
+        "expired": 1800,
+        "request_ms": 1767.326
+      },
+      "case": "sbcl-optimized",
+      "stack": "SBCL 2.5.0 / Mito (Quicklisp 2024-10-12)",
+      "profile": "optimized",
+      "build": {
+        "build_ms": 8120.829,
+        "fasl_bytes": 70927,
+        "scope": "application compile with cached dependencies and launcher startup"
+      }
+    },
+    {
+      "variant": "pharo",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+      "contract": "passed",
+      "request_concurrency": 1,
+      "mixed": {
+        "startup_ms": 1873.637,
+        "requests": 1000,
+        "throughput_rps": 67.69,
+        "latency_us": {
+          "p50": 14292.8,
+          "p95": 32960.5,
+          "p99": 50499.101
+        }
+      },
+      "sparse_expiry": {
+        "active_before": 2000,
+        "expired": 100,
+        "request_ms": 325.291
+      },
+      "dense_expiry": {
+        "active_before": 2000,
+        "expired": 1800,
+        "request_ms": 3294.501
+      },
+      "case": "pharo",
+      "stack": "Pharo 13.1 / Glorp (520f5db) / SQLite3 (44dee15)",
+      "profile": "headless"
+    }
+  ]
+}

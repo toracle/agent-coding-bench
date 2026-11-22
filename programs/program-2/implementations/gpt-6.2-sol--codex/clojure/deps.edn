@@ -1,0 +1,6 @@
+{:paths ["src" "resources"]
+ :mvn/repos {"central" {:url "https://repo.maven.apache.org/maven2/"}}
+ :deps {org.clojure/clojure {:mvn/version "1.12.0"}
+        io.github.camsaul/toucan2 {:mvn/version "1.0.575"}
+        org.xerial/sqlite-jdbc {:mvn/version "3.50.3.0"}
+        org.clojure/data.json {:mvn/version "2.5.1"}}}

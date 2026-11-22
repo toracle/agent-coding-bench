@@ -1,0 +1,92 @@
+{
+  "python": {
+    "directory": "implementations/gpt-6.2-sol--codex/python",
+    "server": [
+      "{python}",
+      "{source}/server.py"
+    ],
+    "cli": [
+      "{python}",
+      "{source}/cli.py"
+    ]
+  },
+  "rust": {
+    "directory": "implementations/gpt-6.2-sol--codex/rust",
+    "server": [
+      "{rust_bin}"
+    ],
+    "cli": [
+      "{rust_bin}",
+      "client"
+    ]
+  },
+  "clojure": {
+    "directory": "implementations/gpt-6.2-sol--codex/clojure",
+    "clojure": true,
+    "server": [
+      "clojure",
+      "-m",
+      "inventory.main"
+    ],
+    "cli": [
+      "clojure",
+      "-m",
+      "inventory.main",
+      "client"
+    ]
+  },
+  "sbcl": {
+    "directory": "implementations/gpt-6.2-sol--codex/common-lisp",
+    "server": [
+      "{sbcl}",
+      "--script",
+      "{source}/launch.lisp"
+    ],
+    "cli": [
+      "{sbcl}",
+      "--script",
+      "{source}/launch.lisp",
+      "client"
+    ]
+  },
+  "ecl": {
+    "directory": "implementations/gpt-6.2-sol--codex/common-lisp",
+    "server": [
+      "{ecl}",
+      "-norc",
+      "-shell",
+      "{source}/launch.lisp",
+      "--"
+    ],
+    "cli": [
+      "{ecl}",
+      "-norc",
+      "-shell",
+      "{source}/launch.lisp",
+      "--",
+      "client"
+    ]
+  },
+  "pharo": {
+    "directory": "implementations/gpt-6.2-sol--codex/pharo",
+    "server": [
+      "{pharo_vm}",
+      "{pharo_image}",
+      "--no-default-preferences",
+      "st",
+      "--quit",
+      "{source}/app.st",
+      "--"
+    ],
+    "cli": [
+      "{pharo_vm}",
+      "{pharo_image}",
+      "--no-default-preferences",
+      "st",
+      "--quit",
+      "{source}/app.st",
+      "--",
+      "client"
+    ]
+  }
+}
