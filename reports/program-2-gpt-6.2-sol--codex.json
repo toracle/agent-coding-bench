@@ -228,6 +228,79 @@
       "case": "clojure",
       "stack": "Clojure 1.12.0 / Toucan 2 1.0.575 / OpenJDK 11.0.21",
       "profile": "TCP_NODELAY on"
+    },
+    {
+      "variant": "ecl",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+      "contract": "passed",
+      "request_concurrency": 1,
+      "mixed": {
+        "startup_ms": 7251.404,
+        "requests": 1000,
+        "throughput_rps": 7.91,
+        "latency_us": {
+          "p50": 120141.896,
+          "p95": 207983.506,
+          "p99": 283942.943
+        }
+      },
+      "expiry_setup_clients": 8,
+      "sparse_expiry": {
+        "active_before": 2000,
+        "expired": 100,
+        "request_ms": 3639.774
+      },
+      "dense_expiry": {
+        "active_before": 2000,
+        "expired": 1800,
+        "request_ms": 67885.088
+      },
+      "case": "ecl-debug",
+      "profile": "debug",
+      "stack": "ECL 24.5.10 / Mito (Quicklisp 2024-10-12)",
+      "expiry_setup": "http",
+      "build": {
+        "build_ms": 11623.735,
+        "fasl_bytes": 342720,
+        "scope": "application compile with cached dependencies and launcher startup",
+        "dependency_setup": "reused native cache; remaining dependencies compiled with C -O0"
+      }
+    },
+    {
+      "variant": "ecl",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+      "contract": "passed",
+      "request_concurrency": 1,
+      "mixed": {
+        "startup_ms": 8650.344,
+        "requests": 1000,
+        "throughput_rps": 7.96,
+        "latency_us": {
+          "p50": 123953.6,
+          "p95": 215895.4,
+          "p99": 255525.699
+        }
+      },
+      "expiry_setup": "snapshot",
+      "sparse_expiry": {
+        "active_before": 2000,
+        "expired": 100,
+        "request_ms": 3940.182
+      },
+      "dense_expiry": {
+        "active_before": 2000,
+        "expired": 1800,
+        "request_ms": 64924.054
+      },
+      "case": "ecl-optimized",
+      "profile": "optimized",
+      "stack": "ECL 24.5.10 / Mito (Quicklisp 2024-10-12)",
+      "build": {
+        "build_ms": 10997.634,
+        "fasl_bytes": 237632,
+        "scope": "application compile with cached dependencies and launcher startup",
+        "dependency_setup": "reused native cache; remaining dependencies compiled with C -O0"
+      }
     }
   ]
 }

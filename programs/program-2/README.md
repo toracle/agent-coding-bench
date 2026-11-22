@@ -8,6 +8,10 @@ separate mixed and expiry workloads. Add `--contract-only` for the correctness
 checks or `--output /path/to/result.json` to save measurements.
 `--expiry-setup-clients` controls parallel seeding for the expiry scenarios.
 The mixed workload and the timed clock advance each still use one client.
+The optional `--expiry-setup snapshot` prepares a disposable SQLite fixture
+before the server starts. It is the ECL default for future runs. Timed
+operations still go through the application's REST endpoint and ORM.
+Reports record the setup mode and any timeout of the clock advance.
 
 ## Python · Flask, Waitress and SQLAlchemy
 
@@ -52,8 +56,11 @@ relative to the variant directory. JDK 11 or newer is required.
 
 Set `PROGRAM2_QUICKLISP_SETUP` to a Quicklisp setup file using the 2024-10-12
 distribution and `PROGRAM2_SBCL` or `PROGRAM2_ECL` to the chosen executable
-if it is outside PATH. First use may compile dependencies. Application
-compilation and server startup can be measured separately.
+if it is outside PATH. Use a standalone Quicklisp setup with these launchers.
+If you are copying Roswell's Quicklisp tree, move `local-init/roswell.lisp`
+out of that directory in the copy before launching a Lisp directly.
+First use may compile dependencies. Application compilation and server
+startup can be measured separately.
 
 ```sh
 impl=programs/program-2/implementations/gpt-6.2-sol--codex/common-lisp
@@ -99,6 +106,8 @@ Each measured run used one sequential client, 1,000 mixed requests, and two
 2,000-reservation expiry scenarios (100 and 1,800 due). The host was Linux under
 WSL2. These exploratory runs share the host with some setup work. Readiness
 is sampled by polling every 10 ms. Expiry entries are single HTTP calls.
+ECL debug prepared expiry with eight HTTP clients and the optimized row used
+a SQLite snapshot. Both timed the same clock-advance operation.
 [Raw results](../../reports/program-2-gpt-6.2-sol--codex.json)
 
 | Variant | Ready (ms) | Mixed req/s | p50 (ms) | p95 (ms) | p99 (ms) | Sparse expiry (ms) | Dense expiry (ms) |
@@ -108,6 +117,8 @@ is sampled by polling every 10 ms. Expiry entries are single HTTP calls.
 | rust-release | 12.7 | 773.3 | 0.97 | 2.72 | 8.28 | 7.2 | 70.0 |
 | sbcl-debug | 3548.4 | 285.8 | 2.35 | 11.62 | 14.18 | 97.8 | 1335.4 |
 | sbcl-optimized | 3174.6 | 435.3 | 1.86 | 5.09 | 12.15 | 79.0 | 1767.3 |
+| ecl-debug | 7251.4 | 7.9 | 120.14 | 207.98 | 283.94 | 3639.8 | 67885.1 |
+| ecl-optimized | 8650.3 | 8.0 | 123.95 | 215.90 | 255.53 | 3940.2 | 64924.1 |
 | pharo | 1873.6 | 67.7 | 14.29 | 32.96 | 50.50 | 325.3 | 3294.5 |
 | clojure | 27456.4 | 80.7 | 8.36 | 35.00 | 61.25 | 456.1 | 7756.0 |
 
@@ -115,7 +126,8 @@ Rust's clean dev and release builds took about 83 s and 114 s including
 dependencies. The executables measured 31.0 MiB and 2.59 MiB. SBCL's warm
 profile build commands took 9.4 s and 8.1 s including launcher and dependency
 loading. The generated application FASLs measured 101.6 KiB and 69.3 KiB.
-Both FASLs are loaded by SBCL at runtime.
+ECL's warm build commands took 11.6 s and 11.0 s. The corresponding ECL application
+FASLs measured 334.7 KiB and 232.1 KiB. Both runtimes load these files at startup.
 
 ## Database portability status
 

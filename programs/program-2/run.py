@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import platform
 import socket
+import sqlite3
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
@@ -46,8 +47,16 @@ class Client:
     def change(self, reservation, action, key, expected=(200,)):
         return self.request(f"/v1/reservations/{reservation}/{action}", expected, key=key)
 
-    def advance(self, key, seconds):
-        return self.request("/v1/clock/advance", (200,), key=key, body={"seconds": seconds})
+    def advance(self, key, seconds, timeout=30):
+        self.connection.timeout = timeout
+        if self.connection.sock is not None:
+            self.connection.sock.settimeout(timeout)
+        try:
+            return self.request("/v1/clock/advance", (200,), key=key, body={"seconds": seconds})
+        finally:
+            self.connection.timeout = 30
+            if self.connection.sock is not None:
+                self.connection.sock.settimeout(30)
 
     def stock(self, sku, count):
         _, result, elapsed = self.request(f"/v1/stock/{sku}", (200,))
@@ -234,14 +243,46 @@ def mixed(submission, cycles):
                 "throughput_rps": round(len(samples) / duration, 2), "latency_us": latency(samples)}
 
 
-def expiry(submission, count, expired, setup_clients):
+def seed_expiry_snapshot(submission, count, expired):
+    """Prepare an equivalent SQLite state outside the timed HTTP path."""
+    reservations = []
+    recorded = []
+    for index in range(count):
+        identifier = f"fixture-{index:08d}"
+        ttl = 1 if index < expired else 2
+        items = [{"sku": "A", "quantity": 1}]
+        reservations.append((identifier, "pending", ttl))
+        fingerprint = json.dumps(["POST", "/v1/reservations", {"items": items, "ttl": ttl}],
+                                 sort_keys=True, separators=(",", ":"))
+        body = json.dumps({"id": identifier, "status": "pending", "items": items, "expires_at": ttl})
+        recorded.append((f"expiry-{index}".encode("ascii").hex(), fingerprint, 201, body))
+
+    with sqlite3.connect(submission.directory / "inventory.db") as connection:
+        connection.execute("PRAGMA foreign_keys = ON")
+        changed = connection.execute("UPDATE stock SET available=0 WHERE sku='A' AND available=?", (count,))
+        assert changed.rowcount == 1
+        connection.executemany("INSERT INTO reservations (id,status,expires_at) VALUES (?,?,?)", reservations)
+        connection.executemany(
+            "INSERT INTO reservation_items (reservation_id,sku,quantity) VALUES (?,'A',1)",
+            ((row[0],) for row in reservations),
+        )
+        connection.executemany(
+            "INSERT INTO recorded_responses (key,fingerprint,status,body) VALUES (?,?,?,?)", recorded,
+        )
+
+
+def expiry(submission, count, expired, setup_clients, snapshot):
     submission.prepare(stock_a=count)
+    if snapshot:
+        seed_expiry_snapshot(submission, count, expired)
     with submission.serve() as (client, _):
         def prepare_group(writer, offset):
             for index in range(offset, count, setup_clients):
                 writer.reserve(f"expiry-{index}", [("A", 1)], 1 if index < expired else 2)
 
-        if setup_clients == 1:
+        if snapshot:
+            client.stock("A", 0)
+        elif setup_clients == 1:
             prepare_group(client, 0)
         else:
             client.close()
@@ -256,7 +297,10 @@ def expiry(submission, count, expired, setup_clients):
             with ThreadPoolExecutor(max_workers=setup_clients) as pool:
                 list(pool.map(prepare_in_worker, range(setup_clients)))
             client.stock("A", 0)
-        response = client.advance("expiry-clock", 1)
+        try:
+            response = client.advance("expiry-clock", 1, timeout=180)
+        except TimeoutError:
+            return {"active_before": count, "expected_expired": expired, "timeout_ms": 180_000}
         assert response[1] == {"now": 1, "expired": expired}
         client.stock("A", expired)
         return {"active_before": count, "expired": expired, "request_ms": round(response[2] / 1e6, 3)}
@@ -268,6 +312,7 @@ def main():
     parser.add_argument("--contract-only", action="store_true")
     parser.add_argument("--cycles", type=int, default=250)
     parser.add_argument("--reservations", type=int, default=2000)
+    parser.add_argument("--expiry-setup", choices=("http", "snapshot"))
     parser.add_argument("--expiry-setup-clients", type=int)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
@@ -276,6 +321,7 @@ def main():
     manifest = json.loads((HERE / "variants.json").read_text())
     if args.variant not in manifest:
         parser.error("unknown variant")
+    setup = args.expiry_setup or manifest[args.variant].get("expiry_setup", "http")
     setup_clients = (
         args.expiry_setup_clients if args.expiry_setup_clients is not None
         else manifest[args.variant].get("expiry_setup_clients", 1)
@@ -295,11 +341,13 @@ def main():
         if not args.contract_only:
             result["request_concurrency"] = 1
             result["mixed"] = mixed(submission("mixed"), args.cycles)
-            result["expiry_setup_clients"] = setup_clients
+            result["expiry_setup"] = setup
+            if setup == "http":
+                result["expiry_setup_clients"] = setup_clients
             result["sparse_expiry"] = expiry(submission("sparse"), args.reservations,
-                                             max(1, args.reservations // 20), setup_clients)
+                                             max(1, args.reservations // 20), setup_clients, setup == "snapshot")
             result["dense_expiry"] = expiry(submission("dense"), args.reservations,
-                                            args.reservations * 9 // 10, setup_clients)
+                                            args.reservations * 9 // 10, setup_clients, setup == "snapshot")
     output = json.dumps(result, indent=2) + "\n"
     if args.output:
         args.output.write_text(output)

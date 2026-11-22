@@ -76,10 +76,21 @@ package, so the subclass now explicitly identifies itself as SQLite.
 The first contract then reached CLI verification, where ASDF emitted a
 loader message on stdout before the JSON. Routing loader diagnostics to
 stderr preserved the CLI output contract. Both ECL profiles use the same
-driver workaround and dependency cache. The repeated HTTP calls used to
+driver workaround and dependency cache. Each passed the shared REST and
+CLI contract. The repeated HTTP calls used to
 prepare the expiry fixtures took considerably longer than the clock advance
 being timed. The runner now supports parallel fixture preparation while
-keeping a single client for the measured clock advance.
+keeping a single client for the measured clock advance. The first dense
+expiry reached 2,000 reservations, then its clock advance exceeded the
+harness's 30-second response limit. The expiry workload now waits up to
+180 seconds for that one request. Correctness still requires the exact
+expiry count and restored stock. I also added an optional fixture snapshot
+for ECL to avoid replaying thousands of HTTP setup requests. The runner
+creates that fixture before launching the server; the timed advance still
+uses the REST server and its ORM. The verified retry returned 1,800 expirations
+in 67.9 s in debug and 64.9 s in the optimized build. Mixed throughput stayed
+near 8 requests/s in both builds. This workload exposed costs outside the
+application compiler declarations.
 
 ## Pharo
 
