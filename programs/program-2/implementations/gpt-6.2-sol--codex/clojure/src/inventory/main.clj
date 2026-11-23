@@ -64,19 +64,19 @@
               (cond
                 (= path "/v1/reservations")
                 (if-let [normalized (reserve-body body)]
-                  (db/write! connection key path normalized #(db/reserve % normalized))
+                  (db/write! connection key path normalized (fn [_ now] (db/reserve now normalized)))
                   invalid)
 
                 (and (= v1 "v1") (= resource "reservations") (= 4 length)
                      (contains? #{"cancel" "confirm"} action))
                 (if (= body {})
-                  (db/write! connection key path {} (fn [_] (db/change id
+                  (db/write! connection key path {} (fn [_ _] (db/change id
                     (if (= action "cancel") "cancelled" "confirmed"))))
                   invalid)
 
                 (and benchmark? (= path "/v1/clock/advance"))
                 (if (and (map? body) (= #{:seconds} (set (keys body))) (positive? (:seconds body)))
-                  (db/write! connection key path body #(db/advance! % (:seconds body)))
+                  (db/write! connection key path body (fn [tx now] (db/advance! tx now (:seconds body))))
                   invalid)
 
                 :else missing))))))))

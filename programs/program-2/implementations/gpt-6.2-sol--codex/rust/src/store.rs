@@ -18,6 +18,8 @@ diesel::table! {
     recorded_responses (key) { key -> Text, fingerprint -> Text, status -> Integer, body -> Text, }
 }
 
+diesel::allow_tables_to_appear_in_same_query!(reservations, reservation_items);
+
 pub const MAX_TIME: i32 = 2_000_000_000;
 pub const MAX_INPUT: i32 = 1_000_000;
 const SCHEMA: &str = include_str!("../migrations/0001_inventory.sql");
@@ -223,16 +225,32 @@ pub fn advance(db: &mut SqliteConnection, old: i32, seconds: i32) -> Result<Repl
     if now > MAX_TIME {
         return Ok(error(400, "invalid_request"));
     }
-    let due = reservations::table
+    let totals = reservation_items::table
+        .inner_join(reservations::table.on(reservations::id.eq(reservation_items::reservation_id)))
         .filter(reservations::status.eq("pending"))
         .filter(reservations::expires_at.le(now))
-        .select(reservations::id)
-        .load::<String>(db)?;
-    for id in &due {
-        transition(db, id, "expired")?;
+        .group_by(reservation_items::sku)
+        .select((
+            reservation_items::sku,
+            diesel::dsl::sum(reservation_items::quantity),
+        ))
+        .load::<(String, Option<i64>)>(db)?;
+    for (sku, quantity) in totals {
+        adjust(
+            db,
+            &sku,
+            i32::try_from(quantity.ok_or("empty expiry group")?)?,
+        )?;
     }
+    let expired = diesel::update(
+        reservations::table
+            .filter(reservations::status.eq("pending"))
+            .filter(reservations::expires_at.le(now)),
+    )
+    .set(reservations::status.eq("expired"))
+    .execute(db)?;
     diesel::update(clock::table.find(1))
         .set(clock::now.eq(now))
         .execute(db)?;
-    Ok((200, json!({"now": now, "expired": due.len()})))
+    Ok((200, json!({"now": now, "expired": expired})))
 }

@@ -5,9 +5,9 @@ from uuid import uuid4
 
 from sqlalchemy import (
     CheckConstraint, ForeignKey, Index, Integer, String, Text,
-    create_engine, event, select, update,
+    create_engine, event, func, select, update,
 )
-from sqlalchemy.orm import DeclarativeBase, mapped_column, relationship, selectinload, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, mapped_column, relationship, sessionmaker
 
 MAX_TIME = 2_000_000_000
 
@@ -176,12 +176,16 @@ def advance(session, clock, seconds):
     now = clock.now + seconds
     if now > MAX_TIME:
         return error(400, "invalid_request")
-    expired = session.scalars(
-        select(Reservation).where(Reservation.status == "pending", Reservation.expires_at <= now)
-        .options(selectinload(Reservation.items))
+    due = (Reservation.status == "pending", Reservation.expires_at <= now)
+    totals = session.execute(
+        select(Item.sku, func.sum(Item.quantity))
+        .join(Reservation, Reservation.id == Item.reservation_id)
+        .where(*due)
+        .group_by(Item.sku)
     ).all()
-    release(session, expired)
-    for reservation in expired:
-        reservation.status = "expired"
+    for sku, quantity in totals:
+        session.execute(update(Stock).where(Stock.sku == sku)
+                        .values(available=Stock.available + quantity))
+    expired = session.execute(update(Reservation).where(*due).values(status="expired")).rowcount
     clock.now = now
-    return 200, {"now": now, "expired": len(expired)}
+    return 200, {"now": now, "expired": expired}

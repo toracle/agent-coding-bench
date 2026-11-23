@@ -104,7 +104,9 @@ The application itself is filed in from `app.st` when the image starts.
 
 The table records the original per-reservation expiry implementation. See the
 [controlled SBCL bulk-expiry comparison](journal.md#follow-up--bulk-expiry)
-for the current Common Lisp expiry path.
+and the [cross-stack bulk results](journal.md#bulk-expiry-across-runtimes)
+for the current expiry path. The journal also has
+[build and verification timings](journal.md#measured-build-or-load-through-first-passing-contract).
 
 Each measured run used one sequential client, 1,000 mixed requests, and two
 2,000-reservation expiry scenarios (100 and 1,800 due). The host was Linux under

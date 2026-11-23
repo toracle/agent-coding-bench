@@ -1,0 +1,46 @@
+{
+  "program": "program-2",
+  "model": "gpt-6.2-sol",
+  "harness": "codex",
+  "workload": "dense-expiry",
+  "database": "file-backed SQLite",
+  "setup": "identical fresh SQLite snapshot for each runtime",
+  "samples_per_runtime": 1,
+  "profiles": {
+    "rust": "release",
+    "sbcl": "optimized",
+    "ecl": "optimized"
+  },
+  "results": {
+    "python": {
+      "active_before": 2000,
+      "expired": 1800,
+      "request_ms": 20.758
+    },
+    "pharo": {
+      "active_before": 2000,
+      "expired": 1800,
+      "request_ms": 19.893
+    },
+    "rust": {
+      "active_before": 2000,
+      "expired": 1800,
+      "request_ms": 5.01
+    },
+    "clojure": {
+      "active_before": 2000,
+      "expired": 1800,
+      "request_ms": 97.729
+    },
+    "sbcl": {
+      "active_before": 2000,
+      "expired": 1800,
+      "request_ms": 32.187
+    },
+    "ecl": {
+      "active_before": 2000,
+      "expired": 1800,
+      "request_ms": 167.882
+    }
+  }
+}

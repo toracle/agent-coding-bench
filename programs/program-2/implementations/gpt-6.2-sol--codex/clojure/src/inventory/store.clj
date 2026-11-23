@@ -3,6 +3,7 @@
             [clojure.java.io :as io]
             [clojure.string :as str]
             [next.jdbc :as jdbc]
+            [next.jdbc.result-set :as rs]
             [toucan2.core :as t]
             [methodical.core :as m])
   (:import [java.util UUID]))
@@ -74,7 +75,7 @@
         (if (= fingerprint (:fingerprint previous))
           [(:status previous) (json/read-str (:body previous) :key-fn keyword)]
           (error 409 "idempotency_conflict"))
-        (let [[status body :as response] (operation (:now (t/select-one ::clock :id 1)))]
+        (let [[status body :as response] (operation tx (:now (t/select-one ::clock :id 1)))]
           (when-not (= status 400)
             (t/insert! ::recorded_responses {:key key :fingerprint fingerprint
                                             :status status :body (json/write-str body)}))
@@ -112,12 +113,22 @@
       (error 409 "invalid_transition"))
     (error 404 "unknown_reservation")))
 
-(defn advance! [now seconds]
+(defn advance! [connection now seconds]
   (let [new-time (+ now seconds)]
     (if (> new-time max-time)
       (error 400 "invalid_request")
-      (let [due (t/select ::reservations :status "pending" :expires_at [:<= new-time])]
-        (doseq [row due]
-          (change (:id row) "expired"))
-        (t/update! ::clock :id 1 {:now new-time})
-        [200 {:now new-time :expired (count due)}]))))
+      (let [totals (jdbc/execute! connection
+                     ["SELECT i.sku, SUM(i.quantity) AS quantity
+                       FROM reservation_items i JOIN reservations r ON r.id = i.reservation_id
+                       WHERE r.status = ? AND r.expires_at <= ? GROUP BY i.sku"
+                      "pending" new-time]
+                     {:builder-fn rs/as-unqualified-lower-maps})]
+        (doseq [{:keys [sku quantity]} totals]
+          (jdbc/execute-one! connection
+            ["UPDATE stock SET available = available + ? WHERE sku = ?" quantity sku]))
+        (let [expired (:next.jdbc/update-count
+                        (jdbc/execute-one! connection
+                          ["UPDATE reservations SET status = ? WHERE status = ? AND expires_at <= ?"
+                           "expired" "pending" new-time]))]
+          (t/update! ::clock :id 1 {:now new-time})
+          [200 {:now new-time :expired expired}])))))

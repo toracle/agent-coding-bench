@@ -1,0 +1,18 @@
+{"stack": "python", "stage": "start", "started_at": "2026-11-23T00:59:51.633596+00:00"}
+{"stack": "python", "stage": "load", "started_at": "2026-11-23T00:59:51.884455+00:00", "seconds": 0.193, "exit_code": 0, "finished_at": "2026-11-23T00:59:52.077524+00:00"}
+{"stack": "python", "stage": "contract", "started_at": "2026-11-23T00:59:52.348285+00:00", "seconds": 5.507, "exit_code": 0, "finished_at": "2026-11-23T00:59:57.855810+00:00"}
+{"stack": "pharo", "stage": "start", "started_at": "2026-11-23T00:59:57.919983+00:00"}
+{"stack": "pharo", "stage": "load", "started_at": "2026-11-23T00:59:57.975508+00:00", "seconds": 0.436, "exit_code": 0, "finished_at": "2026-11-23T00:59:58.411962+00:00"}
+{"stack": "pharo", "stage": "contract", "started_at": "2026-11-23T00:59:58.464261+00:00", "seconds": 3.554, "exit_code": 0, "finished_at": "2026-11-23T01:00:02.018575+00:00"}
+{"stack": "rust", "stage": "start", "started_at": "2026-11-23T01:00:02.067137+00:00"}
+{"stack": "rust", "stage": "compile", "started_at": "2026-11-23T01:00:02.122130+00:00", "seconds": 6.324, "exit_code": 0, "finished_at": "2026-11-23T01:00:08.446238+00:00"}
+{"stack": "rust", "stage": "contract", "started_at": "2026-11-23T01:00:08.507299+00:00", "seconds": 0.265, "exit_code": 0, "finished_at": "2026-11-23T01:00:08.772099+00:00"}
+{"stack": "clojure", "stage": "start", "started_at": "2026-11-23T01:00:08.863621+00:00"}
+{"stack": "clojure", "stage": "load", "started_at": "2026-11-23T01:00:08.946279+00:00", "seconds": 15.284, "exit_code": 0, "finished_at": "2026-11-23T01:00:24.230039+00:00"}
+{"stack": "clojure", "stage": "contract", "started_at": "2026-11-23T01:00:24.277805+00:00", "seconds": 144.856, "exit_code": 0, "finished_at": "2026-11-23T01:02:49.133948+00:00"}
+{"stack": "sbcl", "stage": "start", "started_at": "2026-11-23T01:02:49.214099+00:00"}
+{"stack": "sbcl", "stage": "compile", "started_at": "2026-11-23T01:02:49.271316+00:00", "seconds": 4.064, "exit_code": 0, "finished_at": "2026-11-23T01:02:53.335552+00:00"}
+{"stack": "sbcl", "stage": "contract", "started_at": "2026-11-23T01:02:53.389900+00:00", "seconds": 17.628, "exit_code": 0, "finished_at": "2026-11-23T01:03:11.018267+00:00"}
+{"stack": "ecl", "stage": "start", "started_at": "2026-11-23T01:03:11.070971+00:00"}
+{"stack": "ecl", "stage": "compile", "started_at": "2026-11-23T01:03:11.136861+00:00", "seconds": 10.332, "exit_code": 0, "finished_at": "2026-11-23T01:03:21.468571+00:00"}
+{"stack": "ecl", "stage": "contract", "started_at": "2026-11-23T01:03:21.517357+00:00", "seconds": 52.729, "exit_code": 0, "finished_at": "2026-11-23T01:04:14.246816+00:00"}

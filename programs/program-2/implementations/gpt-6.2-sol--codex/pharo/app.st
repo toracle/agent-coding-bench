@@ -143,15 +143,26 @@ transition: id status: status session: session
     row status: status.
     ^ {200. self render: row items: items}
 !
-advance: seconds clock: clock session: session
-    | now due |
+advance: seconds clock: clock session: session accessor: accessor
+    | now totals expired |
     now := clock now + seconds.
     now > 2000000000 ifTrue: [^ self error: 400 code: 'invalid_request'].
-    due := session read: BenchReservation where: [ :row | (row status = 'pending') & (row expires <= now) ].
-    due do: [ :reservation | self transition: reservation id status: 'expired' session: session ].
+    totals := accessor executeSQLString:
+        'SELECT i.sku, SUM(i.quantity)
+         FROM reservation_items i JOIN reservations r ON r.id = i.reservation_id
+         WHERE r.status = ? AND r.expires_at <= ? GROUP BY i.sku'
+        binding: {'pending'. now}.
+    totals do: [ :row |
+        accessor executeSQLString:
+            'UPDATE stock SET available = available + ? WHERE sku = ?'
+            binding: {(row atIndex: 2). (row atIndex: 1)} ].
+    accessor executeSQLString:
+        'UPDATE reservations SET status = ? WHERE status = ? AND expires_at <= ?'
+        binding: {'expired'. 'pending'. now}.
+    expired := (accessor executeSQLString: 'SELECT changes()') first first.
     session register: clock.
     clock now: now.
-    ^ {200. Dictionary newFrom: {'now' -> now. 'expired' -> due size}}
+    ^ {200. Dictionary newFrom: {'now' -> now. 'expired' -> expired}}
 ! !
 !BenchInventory methodsFor: 'http'!
 identifier: value size: limit lowercase: lowercase
@@ -234,7 +245,7 @@ dispatch: request
         (benchmark and: [path = '/v1/clock/advance']) ifTrue: [
             (body isDictionary and: [body size = 1 and: [self positive: (body at: 'seconds' ifAbsent: [nil])]])
                 ifFalse: [^ self error: 400 code: 'invalid_request'].
-            operation := [ :clock | self advance: (body at: 'seconds') clock: clock session: session ] ].
+            operation := [ :clock | self advance: (body at: 'seconds') clock: clock session: session accessor: accessor ] ].
         operation ifNil: [^ self error: 404 code: 'not_found'].
         self write: key path: path body: normalized operation: operation session: session accessor: accessor ]
 !

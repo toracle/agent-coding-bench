@@ -141,3 +141,78 @@ reservations, expired exactly 1,800, and restored 1,800 units of stock.
 
 The measured median fell by about 45 times. The change targets clock advance.
 The comparison uses SBCL for both paths and does not measure a bulk Rust path.
+
+## Follow-up · Bulk expiry across stacks
+
+Python/SQLAlchemy and Rust/Diesel build the grouped aggregate and conditional
+update through their query builders. Clojure/Toucan and Pharo/Glorp use
+parameterized SQL through the existing transaction's database connection.
+All four restore stock once per affected SKU and update the due reservation
+statuses in one statement. The clock and replay record are committed with
+the stock and status changes.
+
+Rust's first compile failed because Diesel's typed join requires declaring
+that the two tables may appear in the same query. The second compile
+succeeded and Cargo reported 8.56 s for the incremental release build.
+Pharo's first HTTP contract reached the expiry operation and failed because
+the SQLite driver returned a row object with `atIndex:` access. The second
+contract passed after using that accessor. Python and Clojure passed their first contracts.
+The timed replay uses already edited sources and warm dependency caches.
+
+### Timing an implementation trial
+
+Start the clock before editing. Run the tool again for every compile, image
+or module load, and contract attempt. The summary stops at the first
+successful contract. Its elapsed time includes work between commands.
+Compile and load totals include failed attempts, and their failure counts
+show how many retries were needed.
+
+```sh
+python3 development/record_work.py /tmp/trial.jsonl rust start
+python3 development/record_work.py /tmp/trial.jsonl rust compile -- \
+  cargo build --locked --release --manifest-path programs/program-2/implementations/gpt-6.2-sol--codex/rust/Cargo.toml
+python3 development/record_work.py /tmp/trial.jsonl rust contract -- \
+  python3 programs/program-2/run.py --variant rust --contract-only
+python3 development/record_work.py /tmp/trial.jsonl rust summary
+```
+
+The beginning of this edit preceded the timing request. Exact time from
+the first edit through acceptance, and the duration of earlier failed
+attempts, were not recorded. The prepared-source replay measures the
+build or load and contract path separately from runtime benchmarking.
+
+### Measured build or load through first passing contract
+
+Each timed replay used the already edited source, a warm dependency cache,
+one build or load check and one contract run. Rust used release, and both
+Lisp implementations used the optimized policy. A load check covers Python
+bytecode compilation, Clojure namespace loading, or Pharo file-in.
+Contract time includes fresh server and CLI processes and a server restart.
+
+| Runtime | Build or load (s) | Attempts / failures | Contract (s) | Elapsed to pass (s) |
+| --- | ---: | ---: | ---: | ---: |
+| python | 0.19 | 1 / 0 | 5.51 | 6.22 |
+| rust | 6.32 | 1 / 0 | 0.27 | 6.71 |
+| sbcl | 4.06 | 1 / 0 | 17.63 | 21.80 |
+| ecl | 10.33 | 1 / 0 | 52.73 | 63.18 |
+| clojure | 15.28 | 1 / 0 | 144.86 | 160.27 |
+| pharo | 0.44 | 1 / 0 | 3.55 | 4.10 |
+
+The individual events are available in the [timing log](../../development/program-2-bulk-work.jsonl).
+
+### Bulk expiry across runtimes
+
+Each row is one HTTP request on the same 2,000-reservation SQLite
+fixture. Every run verified 1,800 expirations and 1,800 units of stock
+restored. Fixture preparation is outside the measurement.
+
+| Runtime | Elapsed (ms) |
+| --- | ---: |
+| python | 20.76 |
+| rust | 5.01 |
+| sbcl | 32.19 |
+| ecl | 167.88 |
+| clojure | 97.73 |
+| pharo | 19.89 |
+
+[Raw runtime measurements](../../reports/program-2-bulk-expiry.json).
